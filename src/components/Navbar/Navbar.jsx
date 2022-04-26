@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AppBar, Typography, Toolbar, Avatar, Button } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import useStyles from './styles';
@@ -10,31 +10,34 @@ import decode from 'jwt-decode';
 
 
 const Navbar = () => {
-    const [user, setUser] = useState(JSON.parse(localStorage.getItem('profile')));
-    const dispatch = useDispatch();
-    const location = useLocation();
-    const navigate = useNavigate();
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('profile')));
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
   const classes = useStyles();
 
-    const logout = () => {
-        dispatch({ type: LOGOUT });
-        navigate('/auth');
-        setUser(null);
-    }
-    
-    useEffect(() => {
-      const token = user?.token
-      if(token) {
-        const decodedToken = decode(token);
+  
 
-        if(decodedToken.exp * 1000 < new Date().getTime()) {
-          logout();
-        }
+  const logout = useCallback(() => {
+    dispatch({ type: LOGOUT });
+    navigate('/auth');
+    setUser(null);
+  }, [dispatch, navigate])
+    
+  useEffect(() => {
+    
+    const token = user?.token
+    if(token) {
+      const decodedToken = decode(token);
+
+      if(decodedToken.exp * 1000 < new Date().getTime()) {
+        logout();
       }
+    }
 
-      setUser(JSON.parse(localStorage.getItem('profile')));
-    }, [location, user]);
-    
+    setUser(JSON.parse(localStorage.getItem('profile')));
+  }, [location, user, logout]);
+  
 
   return (
     <AppBar className = {classes.appBar} position="static" color="inherit">
